@@ -42,8 +42,8 @@ provider:
   versionFunctions: true
   
   apiGateway:
-    description: Some Description
-    apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
+    description: API REST for sls-cognito-example ${opt:stage}
+    # apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     apiKeys: # List of API keys to be used by your service API Gateway REST API
       - sls-cognito-example-api-key-${opt:stage}
         value: ${env:API_KEY}
