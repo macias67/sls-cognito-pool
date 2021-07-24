@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: sls-cognito-pool
+service: sls-cognito-example
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -25,8 +25,38 @@ provider:
   runtime: nodejs12.x
 
 # you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+  stage: ${env:STAGE}
+  region: ${env:REGION}
+  stackName: sls-cognito-example
+  apiName: sls-cognito-example-${opt:stage} # Use a custom name for the API Gateway API
+  memorySize: 128
+  timeout: 10
+  logRetentionInDays: 1
+  deploymentBucket:
+    name: moscloud.sls.${self:provider.region}.deploys
+    tags: # Tags that will be added to each of the deployment resources
+      environment: dev
+      project: sls-cognito-example
+#  deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
+  lambdaHashingVersion: 20201221
+  versionFunctions: true
+  
+  apiGateway:
+    description: Some Description
+    apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
+    apiKeys: # List of API keys to be used by your service API Gateway REST API
+      - sls-cognito-example-api-key-${opt:stage}
+        value: ${env:API_KEY}
+        description: API key for sls-cognito-example ${opt:stage}
+      #  customerId: myFirstKeyCustomerId
+    usagePlan: # Optional usage plan configuration
+      quota:
+        limit: 100
+      #  offset: 2
+        period: DAY
+      throttle:
+        burstLimit: 20
+        rateLimit: 10
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -48,14 +78,39 @@ provider:
 #  environment:
 #    variable1: value1
 
+custom:
+  functionsBasePath: src/handlers
+  prune:
+    automatic: true
+    number: 3
+
 # you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+package:
+  individually: true
+  excludeDevDependencies: true
+  patterns:
+    - "!local/**"
+    - "!.vscode/**"
+    - "!node_modules/**/**.md"
+    - "!node_modules/**/test/**"
+    - "!node_modules/**/LICENSE"
+    - "!node_modules/**/LICENCE"
+    - "!node_modules/**/License"
+    - "!node_modules/**/license"
+    - "!node_modules/**/Makefile"
+    - "!node_modules/**/**.ts"
+    - "!node_modules/**/package-lock.json"
+    - "!node_modules/**/aws-sdk/**"
+    - "!./yarn.*"
+    - "!./**.md"
+    - "!./package.json"
+    - "!./package-lock.json"
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-prune-plugin
+  - serverless-plugin-include-dependencies
+  - serverless-functions-base-path
 
 functions:
   hello:
@@ -63,10 +118,11 @@ functions:
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
-#    events:
-#      - http:
-#          path: users/create
-#          method: get
+    events:
+      - http:
+          path: hello
+          method: get
+          private: true
 #      - websocket: $connect
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
