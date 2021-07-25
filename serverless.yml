@@ -20,6 +20,8 @@ service: sls-cognito-example
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -28,7 +30,7 @@ provider:
   stage: ${env:STAGE}
   region: ${env:REGION}
   stackName: sls-cognito-example
-  apiName: sls-cognito-example-${opt:stage} # Use a custom name for the API Gateway API
+  apiName: sls-cognito-example-${sls:stage} # Use a custom name for the API Gateway API
   memorySize: 128
   timeout: 10
   logRetentionInDays: 1
@@ -37,17 +39,22 @@ provider:
     tags: # Tags that will be added to each of the deployment resources
       environment: dev
       project: sls-cognito-example
-#  deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
+  deploymentPrefix: serverless # The S3 prefix under which deployed artifacts should be stored. Default is serverless
   lambdaHashingVersion: 20201221
   versionFunctions: true
+  stackTags: # Optional CF stack tags
+    stage: ${sls:stage}
+    project: sls-cognito-example
+  # Deprecations
+  variablesResolutionMode: 20210326
   
   apiGateway:
-    description: API REST for sls-cognito-example ${opt:stage}
+    description: API REST for sls-cognito-example ${sls:stage}
     # apiKeySourceType: HEADER # Source of API key for usage plan. HEADER or AUTHORIZER.
     apiKeys: # List of API keys to be used by your service API Gateway REST API
-      - sls-cognito-example-api-key-${opt:stage}
+      - name: sls-cognito-example-api-key-${sls:stage}
         value: ${env:API_KEY}
-        description: API key for sls-cognito-example ${opt:stage}
+        description: API key for sls-cognito-example ${sls:stage}
       #  customerId: myFirstKeyCustomerId
     usagePlan: # Optional usage plan configuration
       quota:
